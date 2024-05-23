@@ -2,8 +2,11 @@ from collections import OrderedDict
 
 class BencodeDecoder:
     def __init__(self) -> None:
-        self.data = None
-        self.index = 0
+        try:
+            self.data = None
+            self.index = 0
+        except Exception as e:
+            print(f"!ERROR! => Initialization error: {e}")
 
     def decode(self, data: bytes):
         try:
@@ -34,12 +37,12 @@ class BencodeDecoder:
             end_index = self.data.find(b'e', self.index)
 
             if end_index == -1:
-                raise Exception("Invalid integer format")
+                raise Exception("!ERROR! => Invalid integer format")
             else:
                 number_str = self.data[self.index:end_index].decode('ascii')
 
                 if not (number_str.isdigit() or (number_str.startswith('-') and number_str[1:].isdigit())):
-                    raise Exception(f"Invalid integer value: {number_str}")
+                    raise Exception(f"!ERROR => Invalid integer value: {number_str}")
                 else:
                     number = int(number_str)
                     self.index = end_index + 1
@@ -52,17 +55,17 @@ class BencodeDecoder:
         try:
             colon_index = self.data.find(b':', self.index)
             if colon_index == -1:
-                raise Exception("Invalid string length format")
+                raise Exception("!ERROR! => Invalid string length format")
             else:
                 length_str = self.data[self.index:colon_index].decode('ascii')
                 if not length_str.isdigit():
-                    raise Exception(f"Invalid string length: {length_str}")
+                    raise Exception(f"!ERROR! => Invalid string length: {length_str}")
                 else:
                     length = int(length_str)
                     self.index = colon_index + 1
                     end_index = self.index + length
                     if end_index > len(self.data):
-                        raise Exception("Unexpected end of string data")
+                        raise Exception("!ERROR! => Unexpected end of string data")
                     else:
                         string = self.data[self.index:end_index]
                         self.index = end_index
@@ -103,38 +106,58 @@ class BencodeDecoder:
         
 class BencodeEncoder:
     def encode(self, data):
-        if isinstance(data, int):           
-            return self.encode_integer(data)
-        elif isinstance(data, str):
-            return self.encode_string(data.encode('utf-8'))
-        elif isinstance(data, bytes):
-            return self.encode_string(data)
-        elif isinstance(data, list):
-            return self.encode_list(data)
-        elif isinstance(data, dict):
-            return self.encode_dictionary(data)
-        else:
-            raise TypeError("!ERROR! => Unsupported DATA type")
+        try:
+            if isinstance(data, int):           
+                return self.encode_integer(data)
+            elif isinstance(data, str):
+                return self.encode_string(data.encode('utf-8'))
+            elif isinstance(data, bytes):
+                return self.encode_string(data)
+            elif isinstance(data, list):
+                return self.encode_list(data)
+            elif isinstance(data, dict):
+                return self.encode_dictionary(data)
+            else:
+                raise TypeError("!ERROR! => Unsupported DATA type")
+        except Exception as e:
+            print(f"!ERROR! => Encode DATA error: {e}")
+            return None
 
     def encode_integer(self, integer):
-        return b"i" + str(integer).encode('ascii') + b"e"
+        try:
+            return b"i" + str(integer).encode('ascii') + b"e"
+        except Exception as e:
+            print(f"!ERROR! => Encode INT error: {e}")
+            return None
 
     def encode_string(self, string):
-        length = str(len(string)).encode('ascii')
-        return length + b":" + string
+        try:
+            length = str(len(string)).encode('ascii')
+            return length + b":" + string
+        except Exception as e:
+            print(f"!ERROR! => Encode STR error: {e}")
+            return None
 
     def encode_list(self, lst):
-        encoded_list = bytearray(b"l")
-        for item in lst:
-            encoded_list.extend(self.encode(item))
-        encoded_list.extend(b"e")
-        return encoded_list
+        try:
+            encoded_list = bytearray(b"l")
+            for item in lst:
+                encoded_list.extend(self.encode(item))
+            encoded_list.extend(b"e")
+            return encoded_list
+        except Exception as e:
+            print(f"!ERROR! => Encode LIST error: {e}")
+            return None
 
     def encode_dictionary(self, dct):
-        encoded_dict = bytearray(b"d")
-        ordered_dict = sorted(dct.items())
-        for key, value in ordered_dict:
-            encoded_dict.extend(self.encode(key))
-            encoded_dict.extend(self.encode(value))
-        encoded_dict.extend(b"e")
-        return encoded_dict
+        try:
+            encoded_dict = bytearray(b"d")
+            ordered_dict = sorted(dct.items())
+            for key, value in ordered_dict:
+                encoded_dict.extend(self.encode(key))
+                encoded_dict.extend(self.encode(value))
+            encoded_dict.extend(b"e")
+            return encoded_dict
+        except Exception as e:
+            print(f"!ERROR! => Encode DICT error: {e}")
+            return None
